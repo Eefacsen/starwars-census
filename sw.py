@@ -62,6 +62,7 @@ def getFileInfo(op):
 def age():
     global df
     formatAge()
+    
     print('\nAt the Battle of Yamin, ')
     oldest = df.loc[df['birth_year'].idxmax()]
     #oldest = df.idxmax()
@@ -76,6 +77,7 @@ def age():
     print('{} years'.format(avgAge))
     input('\nPress enter to continue')
 
+    # I make a new dataframe from selected age data to report in a graph using matplotlib.pyplot
     ageDct = {youngest['name']:youngest['birth_year'], 'Average Age':avgAge, oldest['name']:oldest['birth_year']}
     ageDF = pd.DataFrame(ageDct, index=[0])
     
@@ -84,6 +86,8 @@ def age():
 
 def height():
     formatHeight()
+
+    # report general stats
     print('\nAt the Battle of Yamin, ')
     tallest = df.loc[df['height'].idxmax()]
     print('The tallest known Charactor was:')
@@ -97,16 +101,18 @@ def height():
     print('{} cm'.format(avgHeight))
     input('\nPress enter to continue')
 
+    # create a new Dataframe fro plotting
     ageDct = {shortest['name']:shortest['height'],'Average Height':avgHeight,tallest['name']:tallest['height']}
     ageDF = pd.DataFrame(ageDct, index=[0])
     
     ageDF.plot.bar()
     plt.show()
-
     # can also make chart from Dct - https://stackoverflow.com/questions/16010869/plot-a-bar-using-matplotlib-using-a-dictionary
 
 def mass():
     formatMass()
+
+    # report general stats
     print('\nAt the Battle of Yamin, ')
     heaviest = df.loc[df['mass'].idxmax()]
     print('The heaviest known Charactor was:')
@@ -120,6 +126,7 @@ def mass():
     print('{} kg'.format(avgMass))
     input('\nPress enter to continue')
 
+    # create new dataframe for plotting
     ageDct = {lightest['name']:lightest['mass'],'Average Weight':avgMass,heaviest['name']:heaviest['mass']}
     ageDF = pd.DataFrame(ageDct, index=[0])
     
@@ -128,16 +135,16 @@ def mass():
 
 def gender():
     global df
+    # define new counters
     maleCount = 0
     femaleCount = 0
     unknown = 0
-    
-    newDF = df.groupby(['gender']).size()
-    newDF.plot.pie()
+    # use the dataframe groupby() function and report back the count by using size()
+    newDF = df.groupby(['gender']).size()   
+
+    newDF.plot.pie(y='Gender',figsize=(5,5))
     plt.show()
-    # add values to pie chart! home work!
-
-
+    # add values to pie chart! using autopct is probably the best way
 
     """
     #newDF = df[['gender']].groupby(['gender'])
@@ -285,33 +292,43 @@ def dataCorrection(df):
 
 def formatHeight():
     global df
+    # record amount of dropped data rows
     dropCount3 = 0
     for x in df.index:
         height = df.loc[x, "height"]
-        
+        # if the data is a digit then pass over
         if re.match(r"\d", height): 
             pass
+        # if data is not a digit drop it from the dataframe
         else:
             df.drop(x, inplace=True)
             dropCount3 += 1
-
-    df['height'] = pd.to_numeric(df['height'])
+    # report changes made to dataframe
     print('\n{} Height rows purged'.format(dropCount3))
-    
+    # convert string to num
+    df['height'] = pd.to_numeric(df['height'])
+    # no need for a return as we have changed the global dataframe
+
 def formatMass():
     global df
+    # record changes
     dropCount2 = 0
     for x in df.index:
         mass = df.loc[x, "mass"]
         
-        if re.search(r"\d", mass):                   
+        # check if mass is a number
+        if re.search(r"\d", mass):   
+            # check if mass has a comma as number spacing                
             if re.search(r',', mass): 
+                # remove the comma completely to create clean num
                 mass = mass.replace(",","")
+                # check that the variable mass starts and ends with a number and that the string is not longer than 5
                 if re.match(r'^[0-9]{1,5}$', mass):
                     df.loc[x, "mass"] = mass
                 else:
                     df.drop(x, inplace=True)
                     dropCount2 += 1
+            # no commas so just check the num format
             elif re.match(r'^[0-9]{1,5}$', mass):
                 pass
             else:
@@ -320,9 +337,10 @@ def formatMass():
         else:
             df.drop(x, inplace=True)
             dropCount2 += 1
-
-    df['mass'] = pd.to_numeric(df['mass'])
+    # report on dataframe changeds
     print('\n{} Mass rows purged'.format(dropCount2))
+    # convert srting to num
+    df['mass'] = pd.to_numeric(df['mass'])
 
 def formatAge():
     global df
@@ -338,14 +356,17 @@ def formatAge():
             new_year = year.replace("BBY", "")
             df.loc[x, "birth_year"] = new_year
             changeCount += 1
+        # if we run the age function again the BBY will be removed so we seach for only digits and no letters then pass over these
         elif re.match(r"\d+\W", year):
             pass
         else:
             df.drop(x, inplace=True)
             dropCount += 1
+    # report on changed data
     print('\n{} Birth year, dates corrected'.format(changeCount))
     print('{} Charactors removed as unknown'.format(dropCount))
     
+    # change the formated string data to num to be ploted
     df['birth_year'] = pd.to_numeric(df['birth_year'])
     
 
