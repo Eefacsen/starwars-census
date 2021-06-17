@@ -142,9 +142,11 @@ def gender():
     # use the dataframe groupby() function and report back the count by using size()
     newDF = df.groupby(['gender']).size()   
 
-    newDF.plot.pie(y='Gender',figsize=(5,5))
+    newDF.plot.pie()
     plt.show()
     # add values to pie chart! using autopct is probably the best way
+    #newDF.plot.pie(y=newDF['gender'], figsize=(5,5), autopct = 'gender')
+    #research how to referance the different colums in newDF for both y axis and autopct - values  
 
     """
     #newDF = df[['gender']].groupby(['gender'])
@@ -178,7 +180,8 @@ def gender():
     """
 
 def timeVsMass():
-    df = openFile()
+    #df = openFile()
+    global df
     formatAge()
     formatMass()
 
@@ -186,7 +189,9 @@ def timeVsMass():
     print('Only charactors with both known Age and Weight will be considered\n')
     
     for x in df.index:
-        if df['birth_year'][x] > 200:
+        if isinstance(df['birth_year'][x], str):
+            print(df['birth_year'][x])
+        elif df['birth_year'][x] > 200:
             print('{} - {} years old removed from DataFrame as exceptional'.format(df['name'][x],df['birth_year'][x]))
             df.drop(x, inplace=True)  
         """
@@ -203,11 +208,13 @@ def timeVsMass():
     input('\nPress enter to continue')
 
 def timeVsGrowth():
-    df = openFile()
+    #df = openFile()
+    global df
     formatAge()
     formatHeight()
     print('')
     print('Only charactors with both known Age and Height will be considered\n')
+    
     for x in df.index:
         if df['birth_year'][x] > 200:
             print('{} - {} years old removed from DataFrame as exceptional'.format(df['name'][x],df['birth_year'][x]))
@@ -233,20 +240,26 @@ def timeVsGrowth():
 def genderMass():
     global df
     formatMass()
+    formatAge()
+    formatHeight()
 
-    maleCount = 0
-    femaleCount = 0
-    unknown = 0
+    for x in df.index:
+        if df['mass'][x] > 500:
+            print('{} - {} kg\'s removed from DataFrame as exceptional'.format(df['name'][x],df['mass'][x]))
+            df.drop(x, inplace=True)  
     
-    #newDF = df['gender'] and df['mass']
-
+    # I use .agg(['mean']) to get the average of all numeric values within gender 
     newDF = df.groupby(['gender']).agg(['mean'])
-    del newDF['homeworld'] 
-    print(newDF)
+    del newDF['homeworld']
+    del newDF['height']
+    del newDF['birth_year'] 
     
-    
-    newDF.plot.pie(y = newDF['mass'], labels = newDF.index())
+    #print(newDF)
+    #newDF.plot.pie(y = newDF['mass'], labels = newDF.index())
+    newDF.plot.bar()
     plt.show()
+
+    input('\nPress enter to continue')
 
 # DATA CLEANING
 
@@ -295,7 +308,8 @@ def formatHeight():
     # record amount of dropped data rows
     dropCount3 = 0
     for x in df.index:
-        height = df.loc[x, "height"]
+        #convert to string for regex search function
+        height = str(df.loc[x, "height"])
         # if the data is a digit then pass over
         if re.match(r"\d", height): 
             pass
@@ -314,7 +328,7 @@ def formatMass():
     # record changes
     dropCount2 = 0
     for x in df.index:
-        mass = df.loc[x, "mass"]
+        mass = str(df.loc[x, "mass"])
         
         # check if mass is a number
         if re.search(r"\d", mass):   
@@ -337,7 +351,7 @@ def formatMass():
         else:
             df.drop(x, inplace=True)
             dropCount2 += 1
-    # report on dataframe changeds
+    # report on dataframe changes
     print('\n{} Mass rows purged'.format(dropCount2))
     # convert srting to num
     df['mass'] = pd.to_numeric(df['mass'])
@@ -395,7 +409,7 @@ def menu3():
         print('[2] - Height')
         print('[3] - Mass')
         print('[4] - Gender')
-        print('[5] - Time Vs Growth')
+        print('[5] - Time Vs Height')
         print('[6] - Gender Mass')
     
         try:
